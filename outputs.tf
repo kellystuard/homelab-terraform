@@ -1,0 +1,26 @@
+output "k8s_endpoint" {
+  description = "Public HTTPS endpoint for the Kubernetes API (via Cloudflare Tunnel)"
+  value       = "https://homelab.stuard.us"
+}
+
+output "service_token_client_id" {
+  description = "CF-Access-Client-Id header value for kubectl authentication"
+  value       = cloudflare_access_service_token.k8s.client_id
+}
+
+output "service_token_client_secret" {
+  description = "CF-Access-Client-Secret header value for kubectl authentication"
+  value       = cloudflare_access_service_token.k8s.client_secret
+  sensitive   = true
+}
+
+output "tunnel_id" {
+  description = "Cloudflare Tunnel ID – used to configure cloudflared on redtrim.local"
+  value       = cloudflare_tunnel.k8s.id
+}
+
+output "tunnel_token" {
+  description = "Cloudflare Tunnel token – pass to `cloudflared tunnel run --token <value>` on redtrim.local"
+  value       = cloudflare_tunnel.k8s.tunnel_token
+  sensitive   = true
+}
