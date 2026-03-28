@@ -18,6 +18,9 @@ echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudf
   | sudo tee /etc/apt/sources.list.d/cloudflared.list
 sudo apt-get update -y && sudo apt-get install -y cloudflared
 
+# ── pre-commit ────────────────────────────────────────────────────────────────
+pip install --quiet pre-commit
+
 echo "✅  All tools installed."
 echo "   tofu      $(tofu version -json | python3 -c 'import sys,json; print(json.load(sys.stdin)[\"terraform_version\"])')"
 echo "   tflint    $(tflint --version)"
