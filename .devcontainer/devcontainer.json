@@ -1,0 +1,33 @@
+{
+  "name": "homelab-terraform",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  "features": {
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "version": "latest",
+      "helm": "none",
+      "minikube": "none"
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/install-tools.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "hashicorp.terraform",
+        "gamunu.opentofu",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "[terraform]": {
+          "editor.defaultFormatter": "hashicorp.terraform"
+        },
+        "[opentofu]": {
+          "editor.defaultFormatter": "gamunu.opentofu"
+        }
+      }
+    }
+  }
+}
