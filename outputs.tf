@@ -1,6 +1,6 @@
 output "k8s_endpoint" {
   description = "Public HTTPS endpoint for the Kubernetes API (via Cloudflare Tunnel)"
-  value       = "https://homelab.stuard.us"
+  value       = "https://${cloudflare_tunnel.k8s.id}.cfargotunnel.com"
 }
 
 output "service_token_client_id" {

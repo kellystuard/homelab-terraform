@@ -1,7 +1,13 @@
 # Using kubectl with the Homelab Kubernetes API
 
-The Kubernetes API on `redtrim.local` is exposed publicly at `https://homelab.stuard.us`
+The Kubernetes API on `redtrim.local` is exposed at `https://<tunnel-id>.cfargotunnel.com`
 via a Cloudflare Tunnel and protected by Cloudflare Access using a Service Token.
+
+Retrieve the tunnel ID from the Terraform output:
+
+```bash
+export TUNNEL_ID="$(tofu output -raw tunnel_id)"
+```
 
 ## Prerequisites
 
@@ -37,7 +43,7 @@ background service:
 
 ```bash
 cloudflared access tcp \
-  --hostname homelab.stuard.us \
+  --hostname "${TUNNEL_ID}.cfargotunnel.com" \
   --url 127.0.0.1:6443 \
   --service-token-id     "$CF_CLIENT_ID" \
   --service-token-secret "$CF_CLIENT_SECRET"
@@ -48,7 +54,7 @@ cloudflared access tcp \
 > CF_ACCESS_CLIENT_ID="$CF_CLIENT_ID" \
 > CF_ACCESS_CLIENT_SECRET="$CF_CLIENT_SECRET" \
 > cloudflared access tcp \
->   --hostname homelab.stuard.us \
+>   --hostname "${TUNNEL_ID}.cfargotunnel.com" \
 >   --url 127.0.0.1:6443 &
 > ```
 
@@ -112,7 +118,7 @@ set -euo pipefail
 TOKEN=$(curl -fsSL \
   -H "CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}" \
   -H "CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}" \
-  "https://homelab.stuard.us/cdn-cgi/access/get-identity" \
+  "https://${TUNNEL_ID}.cfargotunnel.com/cdn-cgi/access/get-identity" \
   | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))")
 
 cat <<EOF
