@@ -10,14 +10,14 @@ resource "cloudflare_tunnel" "k8s" {
   secret     = random_id.tunnel_secret.b64_std
 }
 
-# Tunnel ingress: route homelab.stuard.us → the Kubernetes API on redtrim.local
+# Tunnel ingress: route the cfargotunnel.com endpoint → the Kubernetes API on redtrim.local
 resource "cloudflare_tunnel_config" "k8s" {
   account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_tunnel.k8s.id
 
   config {
     ingress_rule {
-      hostname = "homelab.stuard.us"
+      hostname = "${cloudflare_tunnel.k8s.id}.cfargotunnel.com"
       service  = "https://redtrim.local:6443"
 
       origin_request {
@@ -33,20 +33,11 @@ resource "cloudflare_tunnel_config" "k8s" {
   }
 }
 
-# DNS CNAME pointing homelab.stuard.us at the tunnel
-resource "cloudflare_record" "k8s_endpoint" {
-  zone_id = var.cloudflare_zone_id
-  name    = "homelab"
-  value   = "${cloudflare_tunnel.k8s.id}.cfargotunnel.com"
-  type    = "CNAME"
-  proxied = true
-}
-
 # Cloudflare Access Application protecting the Kubernetes API endpoint
 resource "cloudflare_access_application" "k8s" {
   account_id       = var.cloudflare_account_id
   name             = "Homelab Kubernetes API"
-  domain           = "homelab.stuard.us"
+  domain           = "${cloudflare_tunnel.k8s.id}.cfargotunnel.com"
   session_duration = "24h"
   type             = "self_hosted"
 }
