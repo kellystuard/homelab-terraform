@@ -8,6 +8,11 @@ echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudf
   | sudo tee /etc/apt/sources.list.d/cloudflared.list
 sudo apt-get update -y && sudo apt-get install -y cloudflared
 
+# ── yq ───────────────────────────────────────────────────────────────────────
+YQ_VERSION=$(curl -fsSL https://api.github.com/repos/mikefarah/yq/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+sudo chmod +x /usr/local/bin/yq
+
 # ── pre-commit ────────────────────────────────────────────────────────────────
 pip install --quiet pre-commit
 
@@ -30,8 +35,8 @@ tool_version() {
 }
 
 echo "✅ All tools installed."
-tool_version "tofu" "tofu version -json | jq -r '.terraform_version'"
+tool_version "yq"          "yq --version | sed 's/yq //'"
+tool_version "tofu"        "tofu version -json | jq -r '.terraform_version'"
 tool_version "cloudflared" "cloudflared version --short"
-tool_version "kubectl" "kubectl version --client=true -o json | jq -r '.clientVersion.gitVersion'"
-tool_version "helm" "helm version --short"
-tool_version "pre-commit" "pre-commit --version | sed 's/^.*pre-commit //'"
+tool_version "kubectl"     "kubectl version --client=true -o json | jq -r '.clientVersion.gitVersion'"
+tool_version "pre-commit"  "pre-commit --version | sed 's/^.*pre-commit //'"
