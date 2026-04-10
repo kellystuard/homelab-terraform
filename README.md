@@ -68,10 +68,14 @@ You need:
 
 - a Cloudflare account ID
 - a Cloudflare API token with these permissions:
+
+  **Zone permissions** (scoped to the zone you are managing):
   - `Zone:Read`
   - `DNS:Edit`
-  - `Argo Tunnel:Edit`
-  - `Access:Edit`
+
+  **Account permissions** (scoped to your Cloudflare account):
+  - `Cloudflare Tunnel:Edit`
+  - `Access: Apps and Policies:Edit`
 
 ### Environment Assumptions
 
