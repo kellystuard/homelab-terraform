@@ -1,6 +1,11 @@
 output "k8s_endpoint" {
-  description = "Public HTTPS endpoint for the Kubernetes API (via Cloudflare Tunnel)"
-  value       = "https://${cloudflare_zero_trust_tunnel_cloudflared.k8s.id}.cfargotunnel.com"
+  description = "Public HTTPS endpoint for the Kubernetes API (via Cloudflare Tunnel and Access)"
+  value       = "https://${var.k8s_public_hostname}"
+}
+
+output "k8s_hostname" {
+  description = "Public DNS hostname for the Kubernetes API"
+  value       = var.k8s_public_hostname
 }
 
 output "service_token_client_id" {

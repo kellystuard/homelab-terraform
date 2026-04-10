@@ -2,7 +2,7 @@
 
 Personal homelab OpenTofu configuration for exposing the Kubernetes API on `redtrim.local` through a **Cloudflare Tunnel** and protecting it with **Cloudflare Access** using a **service token**.
 
-This repository is a **standalone** OpenTofu root configuration. It provisions the Cloudflare-side resources needed to make the cluster reachable at a fixed `*.cfargotunnel.com` endpoint, then emits the credentials and tokens needed to finish the setup.
+This repository is a **standalone** OpenTofu root configuration. It provisions the Cloudflare-side resources needed to make the cluster reachable at a public hostname in your **Cloudflare-managed zone**, then emits the credentials and tokens needed to finish the setup.
 
 ---
 
@@ -12,6 +12,7 @@ This configuration creates:
 
 - a Cloudflare Tunnel named `homelab-k8s`
 - tunnel configuration routing traffic to `https://redtrim.local:6443`
+- a proxied Cloudflare DNS record for your public Kubernetes hostname
 - a Cloudflare Access application for the Kubernetes API
 - a Cloudflare Access service token for non-interactive access
 - an Access policy that allows that service token to reach the endpoint
@@ -19,7 +20,13 @@ This configuration creates:
 The public endpoint is exposed as:
 
 ```text
-https://<tunnel-id>.cfargotunnel.com
+https://<k8s-public-hostname>
+```
+
+For example:
+
+```text
+https://k8s.example.com
 ```
 
 ---
@@ -45,7 +52,7 @@ To stay accurate to the code in this repository, this project does **not** curre
 
 - install `cloudflared` on `redtrim.local`
 - create or manage the Kubernetes cluster itself
-- create a custom DNS hostname for the API endpoint
+- manage multiple public hostnames or wildcard routes beyond the single configured Kubernetes endpoint
 - replace the fixed host/port values (`redtrim.local` and `6443`)
 - verify the origin TLS certificate on `redtrim.local` (`no_tls_verify = true` is set)
 
@@ -67,6 +74,8 @@ To stay accurate to the code in this repository, this project does **not** curre
 You need:
 
 - a Cloudflare account ID
+- a Cloudflare zone ID for the public DNS record
+- a public hostname in that zone for the Kubernetes API (for example `k8s.example.com`)
 - a Cloudflare API token with these permissions:
 
   **Zone permissions** (scoped to the zone you are managing):
@@ -94,8 +103,10 @@ This configuration reads credentials from environment variables:
 
 | Environment Variable | Description | Sensitive |
 |---|---|---:|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Tunnel, Access Apps/Policies, and Service Tokens permissions | Yes |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Tunnel, Access Apps/Policies, Service Tokens, and DNS permissions | Yes |
 | `TF_VAR_cloudflare_account_id` | Cloudflare account ID (populates `var.cloudflare_account_id`) | No |
+| `TF_VAR_cloudflare_zone_id` | Cloudflare zone ID for the public DNS record | No |
+| `TF_VAR_k8s_public_hostname` | Public hostname to expose the Kubernetes API (for example `k8s.example.com`) | No |
 
 ---
 
@@ -115,12 +126,14 @@ Set these stack environment variables:
 ```bash
 CLOUDFLARE_API_TOKEN=<your_cloudflare_api_token>
 TF_VAR_cloudflare_account_id=<your_cloudflare_account_id>
+TF_VAR_cloudflare_zone_id=<your_cloudflare_zone_id>
+TF_VAR_k8s_public_hostname=k8s.example.com
 ```
 
 Recommended handling:
 
 - mark `CLOUDFLARE_API_TOKEN` as **sensitive / masked**
-- keep `TF_VAR_cloudflare_account_id` as a normal plain-text variable
+- keep `TF_VAR_cloudflare_account_id`, `TF_VAR_cloudflare_zone_id`, and `TF_VAR_k8s_public_hostname` as normal plain-text variables
 
 If you run this outside Spacelift, export the same environment variables in your shell before running `tofu plan` / `tofu apply`.
 
@@ -148,6 +161,8 @@ tofu init
 ```bash
 export CLOUDFLARE_API_TOKEN=<your_api_token>
 export TF_VAR_cloudflare_account_id=<your_account_id>
+export TF_VAR_cloudflare_zone_id=<your_zone_id>
+export TF_VAR_k8s_public_hostname=k8s.example.com
 tofu plan
 ```
 
@@ -165,7 +180,8 @@ After apply, this repo exposes the following outputs:
 
 | Output | Description |
 |---|---|
-| `k8s_endpoint` | Public HTTPS endpoint for the Kubernetes API via Cloudflare Tunnel |
+| `k8s_endpoint` | Public HTTPS endpoint for the Kubernetes API via Cloudflare Tunnel and Access |
+| `k8s_hostname` | Public DNS hostname for the Kubernetes API |
 | `service_token_client_id` | Cloudflare Access client ID header value |
 | `service_token_client_secret` | Cloudflare Access client secret header value |
 | `tunnel_id` | Tunnel ID for configuration and access workflows |
@@ -175,6 +191,7 @@ Examples:
 
 ```bash
 tofu output k8s_endpoint
+tofu output -raw k8s_hostname
 tofu output -raw tunnel_id
 tofu output -raw service_token_client_id
 tofu output -raw service_token_client_secret
@@ -227,7 +244,7 @@ sudo systemctl enable --now cloudflared
 ### 1. Export the generated values
 
 ```bash
-export TUNNEL_ID="$(tofu output -raw tunnel_id)"
+export K8S_HOSTNAME="$(tofu output -raw k8s_hostname)"
 export CF_CLIENT_ID="$(tofu output -raw service_token_client_id)"
 export CF_CLIENT_SECRET="$(tofu output -raw service_token_client_secret)"
 ```
@@ -236,7 +253,7 @@ export CF_CLIENT_SECRET="$(tofu output -raw service_token_client_secret)"
 
 ```bash
 cloudflared access tcp \
-  --hostname "${TUNNEL_ID}.cfargotunnel.com" \
+  --hostname "$K8S_HOSTNAME" \
   --url 127.0.0.1:6443 \
   --service-token-id "$CF_CLIENT_ID" \
   --service-token-secret "$CF_CLIENT_SECRET"
@@ -298,7 +315,7 @@ These points are directly based on the current code:
 
 - the tunnel name is fixed to `homelab-k8s`
 - the origin is fixed to `https://redtrim.local:6443`
-- the public hostname is the generated `*.cfargotunnel.com` address, not a custom domain
+- the public hostname is provided via `var.k8s_public_hostname` and created as a proxied CNAME to the tunnel
 - this is a personal homelab-oriented setup, not a generalized module
 
 If you want this repo to become more reusable later, the next natural improvements would be:

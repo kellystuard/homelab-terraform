@@ -18,7 +18,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "k8s" {
   config = {
     ingress = [
       {
-        hostname = "${cloudflare_zero_trust_tunnel_cloudflared.k8s.id}.cfargotunnel.com"
+        hostname = var.k8s_public_hostname
         service  = "https://redtrim.local:6443"
 
         origin_request = {
@@ -35,11 +35,21 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "k8s" {
   }
 }
 
+# Public DNS hostname in a Cloudflare-managed zone -> tunnel UUID target
+resource "cloudflare_dns_record" "k8s" {
+  zone_id = var.cloudflare_zone_id
+  name    = var.k8s_public_hostname
+  type    = "CNAME"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.k8s.id}.cfargotunnel.com"
+  proxied = true
+  ttl     = 1
+}
+
 # Cloudflare Access Application protecting the Kubernetes API endpoint
 resource "cloudflare_zero_trust_access_application" "k8s" {
   account_id       = var.cloudflare_account_id
   name             = "Homelab Kubernetes API"
-  domain           = "${cloudflare_zero_trust_tunnel_cloudflared.k8s.id}.cfargotunnel.com"
+  domain           = var.k8s_public_hostname
   session_duration = "24h"
   type             = "self_hosted"
 
