@@ -89,12 +89,12 @@ This repo assumes all of the following are already true:
 
 ## Inputs
 
-This configuration reads credentials from the Cloudflare provider's built-in environment variables — no Terraform input variables are required:
+This configuration reads credentials from environment variables:
 
 | Environment Variable | Description | Sensitive |
 |---|---|---:|
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Tunnel and Access permissions | Yes |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID | No |
+| `TF_VAR_cloudflare_account_id` | Cloudflare account ID (populates `var.cloudflare_account_id`) | No |
 
 ---
 
@@ -113,13 +113,13 @@ Set these stack environment variables:
 
 ```bash
 CLOUDFLARE_API_TOKEN=<your_cloudflare_api_token>
-CLOUDFLARE_ACCOUNT_ID=<your_cloudflare_account_id>
+TF_VAR_cloudflare_account_id=<your_cloudflare_account_id>
 ```
 
 Recommended handling:
 
 - mark `CLOUDFLARE_API_TOKEN` as **sensitive / masked**
-- keep `CLOUDFLARE_ACCOUNT_ID` as a normal plain-text variable
+- keep `TF_VAR_cloudflare_account_id` as a normal plain-text variable
 
 If you run this outside Spacelift, export the same environment variables in your shell before running `tofu plan` / `tofu apply`.
 
@@ -146,7 +146,7 @@ tofu init
 
 ```bash
 export CLOUDFLARE_API_TOKEN=<your_api_token>
-export CLOUDFLARE_ACCOUNT_ID=<your_account_id>
+export TF_VAR_cloudflare_account_id=<your_account_id>
 tofu plan
 ```
 

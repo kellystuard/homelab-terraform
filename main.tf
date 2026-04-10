@@ -46,7 +46,7 @@ resource "cloudflare_zero_trust_access_application" "k8s" {
   policies = [
     {
       id         = cloudflare_zero_trust_access_policy.k8s_service_token.id
-      precedence = 0
+      precedence = 1
     },
   ]
 }
