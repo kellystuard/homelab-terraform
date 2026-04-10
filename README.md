@@ -76,6 +76,7 @@ You need:
   **Account permissions** (scoped to your Cloudflare account):
   - `Cloudflare Tunnel:Edit`
   - `Access: Apps and Policies:Edit`
+  - `Access: Service Tokens:Edit`
 
 ### Environment Assumptions
 
@@ -93,7 +94,7 @@ This configuration reads credentials from environment variables:
 
 | Environment Variable | Description | Sensitive |
 |---|---|---:|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Tunnel and Access permissions | Yes |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Tunnel, Access Apps/Policies, and Service Tokens permissions | Yes |
 | `TF_VAR_cloudflare_account_id` | Cloudflare account ID (populates `var.cloudflare_account_id`) | No |
 
 ---
