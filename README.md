@@ -89,12 +89,12 @@ This repo assumes all of the following are already true:
 
 ## Inputs
 
-This configuration requires two input variables:
+This configuration reads credentials from environment variables:
 
-| Name | Description | Sensitive |
+| Environment Variable | Description | Sensitive |
 |---|---|---:|
-| `cloudflare_api_token` | Cloudflare API token with Tunnel and Access permissions | Yes |
-| `cloudflare_account_id` | Cloudflare account ID | No |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Tunnel and Access permissions | Yes |
+| `TF_VAR_cloudflare_account_id` | Cloudflare account ID (populates `var.cloudflare_account_id`) | No |
 
 ---
 
@@ -112,16 +112,16 @@ This repository already contains the OpenTofu files needed to run the stack:
 Set these stack environment variables:
 
 ```bash
-TF_VAR_cloudflare_api_token=<your_cloudflare_api_token>
+CLOUDFLARE_API_TOKEN=<your_cloudflare_api_token>
 TF_VAR_cloudflare_account_id=<your_cloudflare_account_id>
 ```
 
 Recommended handling:
 
-- mark `TF_VAR_cloudflare_api_token` as **sensitive / masked**
+- mark `CLOUDFLARE_API_TOKEN` as **sensitive / masked**
 - keep `TF_VAR_cloudflare_account_id` as a normal plain-text variable
 
-If you run this outside Spacelift, you can provide the same values via shell environment variables or a local `terraform.tfvars` / `*.auto.tfvars` file that is **not committed**.
+If you run this outside Spacelift, export the same environment variables in your shell before running `tofu plan` / `tofu apply`.
 
 ---
 
@@ -145,17 +145,15 @@ tofu init
 ### 2. Preview changes
 
 ```bash
-tofu plan \
-  -var="cloudflare_account_id=<your_account_id>" \
-  -var="cloudflare_api_token=<your_api_token>"
+export CLOUDFLARE_API_TOKEN=<your_api_token>
+export TF_VAR_cloudflare_account_id=<your_account_id>
+tofu plan
 ```
 
 ### 3. Apply
 
 ```bash
-tofu apply \
-  -var="cloudflare_account_id=<your_account_id>" \
-  -var="cloudflare_api_token=<your_api_token>"
+tofu apply
 ```
 
 ---
