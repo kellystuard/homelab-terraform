@@ -11,22 +11,22 @@ This repository is a **standalone** OpenTofu root configuration. It provisions t
 This configuration creates:
 
 - a Cloudflare Tunnel named `homelab-k8s`
-- tunnel configuration routing traffic to `https://redtrim.local:6443`
+- tunnel configuration routing TCP traffic to `localhost:6443`
 - a proxied Cloudflare DNS record for your public Kubernetes hostname
 - a Cloudflare Access application for the Kubernetes API
 - a Cloudflare Access service token for non-interactive access
 - an Access policy that allows that service token to reach the endpoint
 
-The public endpoint is exposed as:
+The public hostname is exposed as:
 
 ```text
-https://<k8s-public-hostname>
+<k8s-public-hostname>
 ```
 
 For example:
 
 ```text
-https://k8s.example.com
+k8s.example.com
 ```
 
 ---
@@ -38,7 +38,7 @@ After `tofu apply`, you will have:
 1. A Cloudflare Tunnel configured for the Kubernetes API on `redtrim.local`
 2. A service token you can use with `cloudflared` and `kubectl`
 3. Outputs for:
-   - the public endpoint
+   - the public hostname
    - the tunnel ID
    - the tunnel token
    - the Cloudflare Access client ID
@@ -54,9 +54,6 @@ To stay accurate to the code in this repository, this project does **not** curre
 - create or manage the Kubernetes cluster itself
 - manage multiple public hostnames or wildcard routes beyond the single configured Kubernetes endpoint
 - replace the fixed host/port values (`redtrim.local` and `6443`)
-- verify the origin TLS certificate on `redtrim.local` (`no_tls_verify = true` is set)
-
-> Because the origin request disables TLS verification, this setup assumes the Kubernetes API on `redtrim.local` is using a certificate that may be self-signed or otherwise not trusted by Cloudflare.
 
 ---
 
@@ -92,7 +89,7 @@ You need:
 This repo assumes all of the following are already true:
 
 - `redtrim.local` is the machine that can reach the Kubernetes API locally
-- the Kubernetes API is available at `https://redtrim.local:6443`
+- the Kubernetes API is available at `redtrim.local:6443`
 - `cloudflared` will be installed and run on `redtrim.local`
 
 ---
@@ -180,7 +177,7 @@ After apply, this repo exposes the following outputs:
 
 | Output | Description |
 |---|---|
-| `k8s_endpoint` | Public HTTPS endpoint for the Kubernetes API via Cloudflare Tunnel and Access |
+| `k8s_endpoint` | Public hostname for the Kubernetes API via Cloudflare Tunnel and Access |
 | `k8s_hostname` | Public DNS hostname for the Kubernetes API |
 | `service_token_client_id` | Cloudflare Access client ID header value |
 | `service_token_client_secret` | Cloudflare Access client secret header value |
@@ -286,13 +283,7 @@ kubectl get pods --all-namespaces
 - `service_token_client_secret` is sensitive and should be stored securely.
 - `tunnel_token` grants the ability to run the tunnel and should also be treated as sensitive.
 - The Access policy in this repo is configured for **service token** access rather than interactive user identity.
-- The tunnel origin request currently uses:
-
-```hcl
-no_tls_verify = true
-```
-
-If you later move to a trusted certificate on the Kubernetes API origin, tightening that setting would improve security.
+- Tunnel ingress is configured in TCP mode (`tcp://localhost:6443`) for compatibility with Cloudflare Free when used with `cloudflared access tcp`.
 
 ---
 
@@ -314,7 +305,7 @@ If you later move to a trusted certificate on the Kubernetes API origin, tighten
 These points are directly based on the current code:
 
 - the tunnel name is fixed to `homelab-k8s`
-- the origin is fixed to `https://redtrim.local:6443`
+- the origin is fixed to `tcp://localhost:6443`
 - the public hostname is provided via `var.k8s_public_hostname` and created as a proxied CNAME to the tunnel
 - this is a personal homelab-oriented setup, not a generalized module
 

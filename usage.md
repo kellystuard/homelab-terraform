@@ -1,6 +1,6 @@
 # Using kubectl with the Homelab Kubernetes API
 
-The Kubernetes API on `redtrim.local` is exposed at `https://<k8s-public-hostname>`
+The Kubernetes API on `redtrim.local` is exposed through the public hostname `<k8s-public-hostname>`
 via a Cloudflare Tunnel and protected by Cloudflare Access using a Service Token.
 
 Retrieve the public hostname from the Terraform output:
@@ -100,57 +100,6 @@ kubectl get nodes
 
 # List all pods across namespaces
 kubectl get pods --all-namespaces
-```
-
-## Passing the service token directly in every kubectl call
-
-If you prefer not to run `cloudflared` as a proxy, you can pass the Cloudflare
-Access headers in each request via a `kubeconfig` exec credential plugin.
-
-Create the file `~/.kube/cf-token-plugin.sh`:
-
-```bash
-#!/usr/bin/env bash
-# Exchanges the Cloudflare service token for a short-lived JWT
-# and returns it in the ExecCredential format expected by kubectl.
-set -euo pipefail
-
-TOKEN=$(curl -fsSL \
-  -H "CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}" \
-  -H "CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}" \
-  "https://${K8S_HOSTNAME}/cdn-cgi/access/get-identity" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))")
-
-cat <<EOF
-{
-  "apiVersion": "client.authentication.k8s.io/v1",
-  "kind": "ExecCredential",
-  "status": {
-    "token": "$TOKEN"
-  }
-}
-EOF
-```
-
-```bash
-chmod +x ~/.kube/cf-token-plugin.sh
-```
-
-Reference the plugin in `~/.kube/config`:
-
-```yaml
-users:
-- name: homelab-cf
-  user:
-    exec:
-      apiVersion: client.authentication.k8s.io/v1
-      command: /home/<you>/.kube/cf-token-plugin.sh
-      env:
-      - name: CF_ACCESS_CLIENT_ID
-        value: "<client_id>"
-      - name: CF_ACCESS_CLIENT_SECRET
-        value: "<client_secret>"
-      interactiveMode: Never
 ```
 
 ## Setting up cloudflared on redtrim.local

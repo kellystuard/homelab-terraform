@@ -1,6 +1,6 @@
 output "k8s_endpoint" {
-  description = "Public HTTPS endpoint for the Kubernetes API (via Cloudflare Tunnel and Access)"
-  value       = "https://${var.k8s_public_hostname}"
+  description = "Public hostname for the Kubernetes API (used with cloudflared access tcp and Cloudflare Access)"
+  value       = var.k8s_public_hostname
 }
 
 output "k8s_hostname" {
