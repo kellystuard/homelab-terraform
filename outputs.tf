@@ -1,9 +1,4 @@
-output "k8s_endpoint" {
-  description = "Public hostname for the Kubernetes API (used with cloudflared access tcp and Cloudflare Access)"
-  value       = var.k8s_public_hostname
-}
-
-output "k8s_hostname" {
+output "k8s_public_hostname" {
   description = "Public DNS hostname for the Kubernetes API"
   value       = var.k8s_public_hostname
 }
