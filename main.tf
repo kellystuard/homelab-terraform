@@ -10,7 +10,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "k8s" {
   tunnel_secret = random_id.tunnel_secret.b64_std
 }
 
-# Tunnel ingress: route the cfargotunnel.com endpoint → the Kubernetes API on redtrim.local
+# Tunnel ingress: route the public hostname to the Kubernetes API over TCP
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "k8s" {
   account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.k8s.id
@@ -19,12 +19,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "k8s" {
     ingress = [
       {
         hostname = var.k8s_public_hostname
-        service  = "https://localhost:6443"
-
-        origin_request = {
-          # redtrim.local likely uses a self-signed certificate
-          no_tls_verify = true
-        }
+        service  = "tcp://localhost:6443"
       },
 
       # Catch-all rule required by Cloudflare

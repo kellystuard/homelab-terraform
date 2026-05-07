@@ -1,6 +1,6 @@
 # Using kubectl with the Homelab Kubernetes API
 
-The Kubernetes API on `redtrim.local` is exposed at `https://<k8s-public-hostname>`
+The Kubernetes API on `redtrim.local` is exposed through the public hostname `<k8s-public-hostname>`
 via a Cloudflare Tunnel and protected by Cloudflare Access using a Service Token.
 
 Retrieve the public hostname from the Terraform output:
