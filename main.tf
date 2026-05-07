@@ -10,7 +10,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "k8s" {
   tunnel_secret = random_id.tunnel_secret.b64_std
 }
 
-# Tunnel ingress: route the public hostname to the Kubernetes API over TCP
+# Tunnel ingress: route the public hostname to localhost:6443 on the tunnel host over TCP
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "k8s" {
   account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.k8s.id
