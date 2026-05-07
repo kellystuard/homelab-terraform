@@ -19,7 +19,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "k8s" {
     ingress = [
       {
         hostname = var.k8s_public_hostname
-        service  = "https://redtrim.local:6443"
+        service  = "https://localhost:6443"
 
         origin_request = {
           # redtrim.local likely uses a self-signed certificate
