@@ -38,7 +38,7 @@ After `tofu apply`, you will have:
 1. A Cloudflare Tunnel configured for the Kubernetes API on `redtrim.local`
 2. A service token you can use with `cloudflared` and `kubectl`
 3. Outputs for:
-   - the public endpoint
+   - the public hostname
    - the tunnel ID
    - the tunnel token
    - the Cloudflare Access client ID
